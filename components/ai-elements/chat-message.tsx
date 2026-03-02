@@ -24,10 +24,12 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({
   citations,
   sources,
 }) => (
-  <div className="px-2 min-h-12">
-    <div className="dark:text-neutral-400 text-neutral-500 text-sm w-fit mb-1">
-      {userText}
-    </div>
+  <div className="min-h-fit">
+    {userText && (
+      <div className="text-muted-foreground text-sm w-fit mb-1">
+        {userText}
+      </div>
+    )}
     <StructuredResponse dict={responseDict} citations={citations} />
     {sources && <SourcesList sources={sources} />}
   </div>

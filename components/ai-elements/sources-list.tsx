@@ -20,9 +20,9 @@ export const SourcesList: React.FC<SourcesListProps> = ({ sources }) => (
   <motion.div
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
-    className="mt-3 flex flex-col gap-1.5 text-xs font-mono text-neutral-600 dark:text-neutral-400"
+    className="mt-3 flex flex-col gap-1.5 text-xs text-muted-foreground"
   >
-    <span className="text-[10px] uppercase tracking-wider text-neutral-500 dark:text-neutral-500">
+    <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
       Sources ({sources.length})
     </span>
     {sources.map((s) => {
@@ -32,7 +32,7 @@ export const SourcesList: React.FC<SourcesListProps> = ({ sources }) => (
       return (
         <div
           key={s.citationindex}
-          className="rounded bg-neutral-100 px-2 py-1.5 dark:bg-neutral-700/60"
+          className="rounded bg-muted px-2 py-1.5"
         >
           <span className="font-semibold">[{s.citationindex}]</span>{" "}
           {url ? (
@@ -40,7 +40,7 @@ export const SourcesList: React.FC<SourcesListProps> = ({ sources }) => (
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="underline text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+              className="underline text-accent-foreground hover:text-foreground"
             >
               {label}
             </a>

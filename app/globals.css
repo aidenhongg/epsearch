@@ -3,19 +3,62 @@
 @tailwind utilities;
 
 @font-face {
-    font-family: "uncut sans";
-    src: url("./uncut-sans.woff2") format("woff2");
+  font-family: "uncut sans";
+  src: url("./uncut-sans.woff2") format("woff2");
 }
 
-* {
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 9% 12%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 10% 45%;
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 197 90% 60%;
+    --primary: 197 90% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 220 9% 12%;
+    --accent: 197 90% 95%;
+    --accent-foreground: 197 90% 35%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 9% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 9% 12%;
+    --radius: 0.625rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
     font-family: "uncut sans", sans-serif;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 .no-scrollbar-gutter {
-    scrollbar-gutter: auto;
-    overflow-y: scroll;
+  scrollbar-gutter: auto;
+  overflow-y: scroll;
 }
 
 .no-scrollbar-gutter::-webkit-scrollbar {
-    display: none;
+  display: none;
+}
+
+/* Custom scrollbar for chat area */
+.chat-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 2px;
 }
