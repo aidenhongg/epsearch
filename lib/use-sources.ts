@@ -70,7 +70,8 @@ function extractSources(message: UIMessage): Source[] {
   const all: Source[] = [];
   const seen = new Set<number>();
 
-  console.log("[useSources] parts:", message.parts.map(p => ({ type: p.type, ...(p.type === "dynamic-tool" ? { toolName: p.toolName, state: p.state } : {}), ...((p as any).state ? { state: (p as any).state } : {}) })));
+  // SECURITY: Removed verbose parts logging that could leak document content
+  // to browser devtools / third-party error monitoring.
 
   for (const part of message.parts) {
     // Handle both static (tool-getInformation) and dynamic-tool parts
@@ -92,6 +93,9 @@ function extractSources(message: UIMessage): Source[] {
     }
   }
 
-  console.log("[useSources] extracted:", all.length, "sources");
+  // SECURITY: Only log count, not content
+  if (process.env.NODE_ENV === "development") {
+    console.log("[useSources] extracted:", all.length, "sources");
+  }
   return all;
 }

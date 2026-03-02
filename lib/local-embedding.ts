@@ -20,7 +20,7 @@ export function getEmbeddingPipeline(
     instance = (pipeline as Function)(
       "feature-extraction",
       MODEL_ID,
-      { progress_callback: onProgress },
+      { progress_callback: onProgress, dtype: "fp16" },
     ) as Promise<FeatureExtractionPipeline>;
   }
   return instance;

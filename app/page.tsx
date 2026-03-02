@@ -11,15 +11,18 @@ import { toast } from "sonner";
 import { getToolName, isToolUIPart } from "ai";
 import { useResponseDict } from "@/lib/use-response-dict";
 import { useSources } from "@/lib/use-sources";
-import { StructuredResponse } from "@/components/ai-elements/structured-response";
-import { SourcesList } from "@/components/ai-elements/sources-list";
+import { ChatMessage, ChatHistoryEntry } from "@/components/ai-elements/chat-message";
 import { buildSourceUrl } from "@/lib/source-url";
-import { getEmbeddingPipeline } from "@/lib/local-embedding";
+import { matchCitationsClientSide } from "@/lib/client-cite";
+import type { Source } from "@/lib/use-sources";
 
 export default function Chat() {
-  const { messages, status, sendMessage } = useChat({
+  const { messages, status, sendMessage, setMessages } = useChat({
     onToolCall({ toolCall }) {
-      console.log("Tool call:", toolCall);
+      // SECURITY: Don't log tool call details — may contain user PII
+      if (process.env.NODE_ENV === "development") {
+        console.log("Tool call:", toolCall.toolName);
+      }
     },
     onError: () => {
       toast.error("You've been rate limited, please try again later!");
@@ -27,12 +30,16 @@ export default function Chat() {
   });
 
   const [input, setInput] = useState("");
+  const [history, setHistory] = useState<ChatHistoryEntry[]>([]);
 
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  // Start downloading the local embedding model as soon as the page loads
+  // Preload the embedding model lazily — dynamic import keeps ONNX WASM
+  // out of the initial JS bundle, avoiding a ~2MB LCP penalty.
   useEffect(() => {
-    getEmbeddingPipeline();
+    import("@/lib/local-embedding").then(({ getEmbeddingPipeline }) =>
+      getEmbeddingPipeline(),
+    );
   }, []);
 
   useEffect(() => {
@@ -96,15 +103,6 @@ export default function Chat() {
     return () => clearTimeout(timeout);
   }, [isAwaitingResponse]);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    console.log("Submitting form");
-    e.preventDefault();
-    if (input.trim() !== "") {
-      sendMessage({ text: input });
-      setInput("");
-    }
-  };
-
   const userQuery: UIMessage | undefined = messages
     .filter((m) => m.role === "user")
     .slice(-1)[0];
@@ -133,57 +131,82 @@ export default function Chat() {
   const sources = useSources(lastAssistantMessage, isAwaitingResponse);
 
   // Citation overlay — keyed by segment index
-  type Citation = { label: string; url: string | null };
-  const [citations, setCitations] = useState<Record<number, Citation>>({});
+  type CitationType = { label: string; url: string | null };
+  const [citations, setCitations] = useState<Record<number, CitationType>>({});
   const citationAbortRef = useRef<AbortController | null>(null);
 
-  const runCitationLoop = useCallback(
-    async (dict: NonNullable<typeof responseDict>, signal: AbortSignal) => {
-      for (let i = 0; i < dict.segments.length; i++) {
-        if (signal.aborted) return;
-
-        const seg = dict.segments[i];
-        // Skip structural / non-prose segments (headers, code blocks, etc.)
-        if (!seg.text.trim() || /^```/.test(seg.text) || /^#{1,6}\s/.test(seg.text)) continue;
-
-        try {
-          const res = await fetch("/api/chat/cite/match", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ sentence: seg.text }),
-            signal,
-          });
-          if (signal.aborted) return;
-
-          const data = await res.json();
-          if (data.citationindex != null) {
-            const url = data.match ? buildSourceUrl(data.match) : null;
-            const label = ` [${data.citationindex}]`;
-            setCitations((prev) => ({ ...prev, [i]: { label, url } }));
-          }
-        } catch (err: unknown) {
-          if (err instanceof DOMException && err.name === "AbortError") return;
-          console.error("Citation match error:", err);
+  // Client-side citation matching — replaces the broken server-side
+  // globalThis pipeline that can't share state across Vercel containers.
+  const runCitationMatch = useCallback(
+    async (
+      dict: NonNullable<typeof responseDict>,
+      currentSources: Source[],
+      signal: AbortSignal,
+    ) => {
+      try {
+        const result = await matchCitationsClientSide(
+          currentSources,
+          dict.segments,
+          buildSourceUrl,
+          signal,
+        );
+        if (!signal.aborted) {
+          setCitations(result);
         }
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        console.error("Client-side citation matching error:", err);
       }
     },
     [],
   );
 
-  // Kick off citation loop when a new dict is assembled; abort on change / unmount
+  // Kick off client-side citation matching when both dict and sources are ready
   useEffect(() => {
     citationAbortRef.current?.abort();
     setCitations({});
 
-    if (!responseDict?.assembled) return;
+    if (!responseDict?.assembled || !sources?.length) return;
 
     const ctrl = new AbortController();
     citationAbortRef.current = ctrl;
 
-    runCitationLoop(responseDict, ctrl.signal);
+    runCitationMatch(responseDict, sources, ctrl.signal);
 
     return () => ctrl.abort();
-  }, [responseDict, runCitationLoop]);
+  }, [responseDict, sources, runCitationMatch]);
+
+  // Ref to snapshot the latest completed exchange for history preservation
+  const latestEntryRef = useRef<ChatHistoryEntry | null>(null);
+
+  // Keep the ref in sync with the current completed response
+  useEffect(() => {
+    if (responseDict?.assembled && userQuery) {
+      const userText = userQuery.parts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join(" ");
+      latestEntryRef.current = { userText, responseDict, citations };
+    }
+  }, [responseDict, citations, userQuery]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (isAwaitingResponse || input.trim() === "") return;
+    {
+      // Snapshot the current completed exchange into history before sending
+      const snapshot = latestEntryRef.current;
+      if (snapshot) {
+        latestEntryRef.current = null;
+        setHistory((prev) => [...prev, snapshot]);
+      }
+      // Clear chat history so the API receives a single-turn request,
+      // ensuring the model always calls getInformation for fresh sources.
+      setMessages([]);
+      sendMessage({ text: input });
+      setInput("");
+    }
+  };
 
   return (
     <div className="flex justify-center items-start sm:pt-16 min-h-screen w-full dark:bg-neutral-900 px-4 md:px-0 py-4">
@@ -210,6 +233,7 @@ export default function Chat() {
                 className={`bg-neutral-100 text-base w-full text-neutral-700 dark:bg-neutral-700 dark:placeholder:text-neutral-400 dark:text-neutral-300`}
                 minLength={3}
                 required
+                disabled={isAwaitingResponse}
                 value={input}
                 placeholder={"Ask me anything..."}
                 onChange={(e) => setInput(e.target.value)}
@@ -221,6 +245,17 @@ export default function Chat() {
               }}
               className="min-h-fit flex flex-col gap-2"
             >
+              {/* Past exchanges */}
+              {history.map((entry, i) => (
+                <ChatMessage
+                  key={i}
+                  userText={entry.userText}
+                  responseDict={entry.responseDict}
+                  citations={entry.citations}
+                />
+              ))}
+
+              {/* Current exchange */}
               <AnimatePresence>
                 {showLoading ? (
                   <div className="px-2 min-h-12">
@@ -233,16 +268,15 @@ export default function Chat() {
                     <Loading tool={currentToolCall ?? undefined} />
                   </div>
                 ) : responseDict?.assembled ? (
-                  <div className="px-2 min-h-12">
-                    <div className="dark:text-neutral-400 text-neutral-500 text-sm w-fit mb-1">
-                      {userQuery?.parts
-                        .filter((part) => part.type === "text")
-                        .map((part) => part.text)
-                        .join(" ")}
-                    </div>
-                    <StructuredResponse dict={responseDict} citations={citations} />
-                    {sources && <SourcesList sources={sources} />}
-                  </div>
+                  <ChatMessage
+                    userText={userQuery?.parts
+                      .filter((part) => part.type === "text")
+                      .map((part) => part.text)
+                      .join(" ") ?? ""}
+                    responseDict={responseDict}
+                    citations={citations}
+                    sources={sources}
+                  />
                 ) : null}
               </AnimatePresence>
             </motion.div>

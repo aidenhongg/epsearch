@@ -44,8 +44,9 @@ export const findRelevantContent = async (userQuery: string) => {
       if (metadata?.metadata) {
         try {
           parsedExtra = JSON.parse(metadata.metadata);
-        } catch (e) {
-          console.warn("Metadata parse failed for ID:", m.id);
+        } catch {
+          // SECURITY: Don't log the ID — could be correlated to sensitive docs
+          console.warn("Metadata parse failed for a record");
         }
       }
 

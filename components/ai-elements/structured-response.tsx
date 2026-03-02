@@ -1,56 +1,113 @@
 import React, { useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ResponseDict, SentenceSegment } from "@/lib/response-parser";
+import { ResponseDict } from "@/lib/response-parser";
+
+export type Citation = { label: string; url: string | null };
+
+/**
+ * Recombine segments into a single markdown string, injecting citation
+ * labels at the end of each cited segment so they survive formatting.
+ */
+function combineSegments(
+  dict: ResponseDict,
+  citations?: Record<number, Citation>,
+): string {
+  let out = "";
+  for (let i = 0; i < dict.segments.length; i++) {
+    const seg = dict.segments[i];
+
+    // Spacing between segments
+    if (i > 0) {
+      if (seg.precedingNewlines >= 2) out += "\n\n";
+      else if (seg.precedingNewlines === 1) out += "\n";
+      else out += " ";
+    }
+
+    out += seg.text;
+
+    // Append citation marker right after the sentence text
+    const cite = citations?.[i];
+    if (cite) {
+      // Use a placeholder that won't collide with markdown syntax
+      out += `\x00CITE${i}\x00`;
+    }
+  }
+  return out;
+}
 
 /**
  * Parses inline markdown (bold, italic, bold-italic, inline code)
- * into React elements. Handles nesting order: bold-italic first,
- * then bold, italic, and inline code.
+ * into React elements, and resolves citation placeholders into links.
  */
-function parseInlineMarkdown(text: string): React.ReactNode[] {
-  // Regex alternation for inline patterns (order matters):
+function parseInlineMarkdown(
+  text: string,
+  citations?: Record<number, Citation>,
+): React.ReactNode[] {
+  // Combined regex: markdown patterns + citation placeholders
   //   1. bold-italic  ***...*** or ___...___
   //   2. bold          **...**  or __...__
   //   3. italic        *...*    or _..._
   //   4. inline code   `...`
+  //   5. citation placeholder  \x00CITEn\x00
   const inlineRe =
-    /(\*{3}|_{3})(.*?)\1|(\*{2}|_{2})(.*?)\3|(\*|_)(.*?)\5|(`)(.*?)\7/g;
+    /(\*{3}|_{3})(.*?)\1|(\*{2}|_{2})(.*?)\3|(\*|_)(.*?)\5|(`)(.*?)\7|\x00CITE(\d+)\x00/g;
 
   const nodes: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
+  let key = 0;
 
   while ((match = inlineRe.exec(text)) !== null) {
-    // Push preceding plain text
     if (match.index > lastIndex) {
       nodes.push(text.slice(lastIndex, match.index));
     }
 
     if (match[1]) {
       // bold-italic
-      nodes.push(<strong key={match.index}><em>{match[2]}</em></strong>);
+      nodes.push(<strong key={key}><em>{match[2]}</em></strong>);
     } else if (match[3]) {
       // bold
-      nodes.push(<strong key={match.index}>{match[4]}</strong>);
+      nodes.push(<strong key={key}>{match[4]}</strong>);
     } else if (match[5]) {
       // italic
-      nodes.push(<em key={match.index}>{match[6]}</em>);
+      nodes.push(<em key={key}>{match[6]}</em>);
     } else if (match[7]) {
       // inline code
       nodes.push(
         <code
-          key={match.index}
+          key={key}
           className="rounded bg-neutral-300 px-1 py-0.5 dark:bg-neutral-700"
         >
           {match[8]}
         </code>,
       );
+    } else if (match[9] !== undefined) {
+      // citation placeholder
+      const idx = +match[9];
+      const cite = citations?.[idx];
+      if (cite) {
+        if (cite.url) {
+          nodes.push(
+            <a
+              key={key}
+              href={cite.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {cite.label}
+            </a>,
+          );
+        } else {
+          nodes.push(<span key={key}>{cite.label}</span>);
+        }
+      }
     }
 
+    key++;
     lastIndex = match.index + match[0].length;
   }
 
-  // Trailing plain text
   if (lastIndex < text.length) {
     nodes.push(text.slice(lastIndex));
   }
@@ -58,71 +115,26 @@ function parseInlineMarkdown(text: string): React.ReactNode[] {
   return nodes;
 }
 
-/**
- * Renders a single sentence segment, reconstructing the correct
- * vertical spacing via preceding newlines.
- */
-export type Citation = { label: string; url: string | null };
-
-const SegmentRenderer = ({
-  segment,
-  index,
-  citation,
-}: {
-  segment: SentenceSegment;
-  index: number;
-  citation?: Citation;
-}) => {
-  // Convert newline counts into spacing:
-  // 0 newlines = inline continuation (space between sentences)
-  // 1 newline  = soft break
-  // 2+ newlines = paragraph break
-  const spacer =
-    segment.precedingNewlines >= 2
-      ? "\n\n"
-      : segment.precedingNewlines === 1
-        ? "\n"
-        : index > 0
-          ? " "
-          : "";
-
-  const rendered = useMemo(() => parseInlineMarkdown(segment.text), [segment.text]);
-
-  return (
-    <React.Fragment key={index}>
-      {spacer}
-      {rendered}
-      {citation && (
-        citation.url ? (
-          <a
-            href={citation.url}
-            target="_blank"
-            rel="noreferrer"
-            className="text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            {citation.label}
-          </a>
-        ) : (
-          <span>{citation.label}</span>
-        )
-      )}
-    </React.Fragment>
-  );
-};
-
 interface StructuredResponseProps {
   dict: ResponseDict;
   citations?: Record<number, Citation>;
 }
 
 /**
- * Renders the model response exclusively from the assembled ResponseDict.
- * This component should only be mounted when `dict.assembled === true`.
+ * Renders the model response from the assembled ResponseDict.
+ * Segments are recombined into a single markdown string so that
+ * bold / italic spans that cross sentence boundaries render correctly.
+ * Citations are injected as placeholders and resolved during parsing.
  */
 export const StructuredResponse: React.FC<StructuredResponseProps> = ({
   dict,
   citations,
 }) => {
+  const rendered = useMemo(() => {
+    const combined = combineSegments(dict, citations);
+    return parseInlineMarkdown(combined, citations);
+  }, [dict, citations]);
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -134,9 +146,7 @@ export const StructuredResponse: React.FC<StructuredResponseProps> = ({
         id="markdown"
       >
         <div className="max-h-72 overflow-y-scroll no-scrollbar-gutter">
-          {dict.segments.map((segment, i) => (
-            <SegmentRenderer key={i} segment={segment} index={i} citation={citations?.[i]} />
-          ))}
+          {rendered}
         </div>
       </motion.div>
     </AnimatePresence>
