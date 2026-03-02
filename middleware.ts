@@ -54,9 +54,10 @@ const SECURITY_HEADERS: Record<string, string> = {
   "X-XSS-Protection": "1; mode=block",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-  // CSP: adjust script-src if you use analytics/third-party scripts
+  // CSP: cdn.jsdelivr.net is required by @huggingface/transformers for ONNX WASM backend.
+  // 'wasm-unsafe-eval' is required to compile WASM modules.
   "Content-Security-Policy":
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.venice.ai https://*.pinecone.io https://*.svc.pinecone.io; font-src 'self'; frame-ancestors 'none';",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.venice.ai https://*.pinecone.io https://*.svc.pinecone.io https://cdn.jsdelivr.net https://huggingface.co; worker-src 'self' blob:; font-src 'self'; frame-ancestors 'none';",
 };
 
 function addSecurityHeaders(response: NextResponse): NextResponse {
