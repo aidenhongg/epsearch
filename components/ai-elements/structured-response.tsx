@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ResponseDict } from "@/lib/response-parser";
 
 export type Citation = { label: string; url: string | null };
@@ -136,19 +135,13 @@ export const StructuredResponse: React.FC<StructuredResponseProps> = ({
   }, [dict, citations]);
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={dict.id}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="whitespace-pre-wrap text-base text-foreground overflow-hidden leading-relaxed"
-        id="markdown"
-      >
-        <div className="overflow-y-auto no-scrollbar-gutter">
-          {rendered}
-        </div>
-      </motion.div>
-    </AnimatePresence>
+    <div
+      className="whitespace-pre-wrap text-base text-foreground overflow-hidden leading-relaxed"
+      id="markdown"
+    >
+      <div className="overflow-y-auto no-scrollbar-gutter">
+        {rendered}
+      </div>
+    </div>
   );
 };
