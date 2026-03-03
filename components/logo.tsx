@@ -45,7 +45,7 @@ export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) =
           `repeating-linear-gradient(0deg, #38bdf8, #38bdf8 ${stripe}px, #ffffff ${stripe}px, #ffffff ${cycle}px)`,
         backgroundPositionY: hovered ? `${offsetHover}px` : `${offsetRest}px`,
         transition: hovered
-          ? "background-position-y 0.8s ease-in-out"
+          ? "background-position-y 0.5s ease-in-out"
           : "background-position-y 0.15s ease-out",
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
