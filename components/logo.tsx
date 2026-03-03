@@ -14,8 +14,8 @@ export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) =
 
   const stripe = size === "lg" ? 15 : 6;
   const cycle = stripe * 2;
-  const offsetRest = size === "lg" ? 8 : 3;
-  const offsetHover = size === "lg" ? cycle : cycle;
+  const offsetRest = size === "lg" ? 6 : 2.25;
+  const offsetHover = size === "lg" ? 15 : 6;
 
   return (
     <span
