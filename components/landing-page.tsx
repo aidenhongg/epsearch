@@ -10,12 +10,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onEnterChat }) => {
   return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5, ease: "easeInOut" }}
-      className="fixed inset-0 z-50 flex items-center justify-center"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -46,12 +41,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterChat }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-lg text-white/70 tracking-wide"
-          style={{ fontFamily: '"uncut sans", sans-serif' }}
+          className="text-lg text-white/70 tracking-wide font-sans"
         >
           Click to search
         </motion.p>
       </motion.div>
-    </motion.div>
+    </div>
   );
 };
