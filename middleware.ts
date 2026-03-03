@@ -56,8 +56,9 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
   // CSP: cdn.jsdelivr.net is required by @huggingface/transformers for ONNX WASM backend.
   // 'wasm-unsafe-eval' is required to compile WASM modules.
+  // cdn-lfs.hf.co / cdn-lfs-us-1.hf.co serve the actual ONNX model weight blobs (LFS).
   "Content-Security-Policy":
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.venice.ai https://*.pinecone.io https://*.svc.pinecone.io https://cdn.jsdelivr.net https://huggingface.co; worker-src 'self' blob:; font-src 'self'; frame-ancestors 'none';",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://api.venice.ai https://*.pinecone.io https://*.svc.pinecone.io https://cdn.jsdelivr.net https://huggingface.co https://*.hf.co; worker-src 'self' blob:; font-src 'self'; frame-ancestors 'none';",
 };
 
 function addSecurityHeaders(response: NextResponse): NextResponse {
