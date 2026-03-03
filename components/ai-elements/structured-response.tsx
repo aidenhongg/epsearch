@@ -76,7 +76,7 @@ function parseInlineMarkdown(
       nodes.push(
         <code
           key={key}
-          className="rounded bg-neutral-300 px-1 py-0.5 dark:bg-neutral-700"
+          className="rounded bg-muted px-1 py-0.5 text-sm"
         >
           {match[8]}
         </code>,
@@ -93,7 +93,7 @@ function parseInlineMarkdown(
               href={cite.url}
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              className="text-accent-foreground hover:underline"
             >
               {cite.label}
             </a>,
@@ -142,10 +142,10 @@ export const StructuredResponse: React.FC<StructuredResponseProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="whitespace-pre-wrap font-mono anti text-sm text-neutral-800 dark:text-neutral-200 overflow-hidden"
+        className="whitespace-pre-wrap text-base text-foreground overflow-hidden leading-relaxed"
         id="markdown"
       >
-        <div className="max-h-72 overflow-y-scroll no-scrollbar-gutter">
+        <div className="overflow-y-auto no-scrollbar-gutter">
           {rendered}
         </div>
       </motion.div>
