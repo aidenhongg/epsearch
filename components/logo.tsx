@@ -36,8 +36,24 @@ export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) =
       )}
       style={{
         fontFamily: "Impact, 'Arial Black', sans-serif",
-        backgroundImage:
-          "repeating-linear-gradient(0deg, #38bdf8, #38bdf8 15px, #ffffff 15px, #ffffff 30px)",
+        backgroundImage: [
+          /* 1st stripe: wide blue 25px + white 15px = 40px */
+          "linear-gradient(0deg,",
+          "#38bdf8 0px, #38bdf8 25px,",
+          "#ffffff 25px, #ffffff 40px,",
+          /* remaining stripes: normal 15px blue + 15px white */
+          "#38bdf8 40px, #38bdf8 55px,",
+          "#ffffff 55px, #ffffff 70px,",
+          "#38bdf8 70px, #38bdf8 85px,",
+          "#ffffff 85px, #ffffff 100px,",
+          "#38bdf8 100px, #38bdf8 115px,",
+          "#ffffff 115px, #ffffff 130px,",
+          "#38bdf8 130px, #38bdf8 145px,",
+          "#ffffff 145px, #ffffff 160px,",
+          "#38bdf8 160px, #38bdf8 175px,",
+          "#ffffff 175px, #ffffff 190px,",
+          "#38bdf8 190px)",
+        ].join(" "),
         backgroundPositionY: hovered ? "15px" : "6px",
         transition: hovered
           ? "background-position-y 0.8s ease-in-out"
