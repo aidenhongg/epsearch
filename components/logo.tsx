@@ -38,7 +38,7 @@ export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) =
         fontFamily: "Impact, 'Arial Black', sans-serif",
         backgroundImage:
           "repeating-linear-gradient(0deg, #38bdf8, #38bdf8 15px, #ffffff 15px, #ffffff 30px)",
-        backgroundPositionY: hovered ? "30px" : "8px",
+        backgroundPositionY: hovered ? "15px" : "6px",
         transition: hovered
           ? "background-position-y 0.8s ease-in-out"
           : "background-position-y 0.15s ease-out",
