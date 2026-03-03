@@ -12,10 +12,10 @@ interface LogoProps {
 export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) => {
   const [hovered, setHovered] = useState(false);
 
-  const stripe = size === "lg" ? 15 : 6;
+  const stripe = size === "lg" ? 15 : 5;
   const cycle = stripe * 2;
-  const offsetRest = size === "lg" ? 6 : 1;
-  const offsetHover = size === "lg" ? 15 : 3;
+  const offsetRest = size === "lg" ? 6 : 2;
+  const offsetHover = size === "lg" ? 15 : 5;
 
   return (
     <span
