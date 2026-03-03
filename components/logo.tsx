@@ -11,7 +11,7 @@ interface LogoProps {
 
 const logoStyle: React.CSSProperties = {
   backgroundImage:
-    "repeating-linear-gradient(45deg, #38bdf8, #38bdf8 15px, #ffffff 15px, #ffffff 30px)",
+    "repeating-linear-gradient(0deg, #38bdf8, #38bdf8 15px, #ffffff 15px, #ffffff 30px)",
   WebkitBackgroundClip: "text",
   WebkitTextFillColor: "transparent",
   filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))",

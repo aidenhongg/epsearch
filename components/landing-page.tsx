@@ -37,14 +37,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onEnterChat }) => {
           <Logo size="lg" onClick={onEnterChat} />
         </motion.div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.6 }}
-          className="text-lg text-white/70 tracking-wide font-sans"
-        >
-          Click to search
-        </motion.p>
+
       </motion.div>
     </div>
   );
