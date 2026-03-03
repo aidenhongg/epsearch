@@ -12,6 +12,11 @@ interface LogoProps {
 export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) => {
   const [hovered, setHovered] = useState(false);
 
+  const stripe = size === "lg" ? 15 : 6;
+  const cycle = stripe * 2;
+  const offsetRest = size === "lg" ? 8 : 3;
+  const offsetHover = size === "lg" ? cycle : cycle;
+
   return (
     <span
       role={onClick ? "button" : undefined}
@@ -37,8 +42,8 @@ export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) =
       style={{
         fontFamily: "Impact, 'Arial Black', sans-serif",
         backgroundImage:
-          "repeating-linear-gradient(0deg, #38bdf8, #38bdf8 15px, #ffffff 15px, #ffffff 30px)",
-        backgroundPositionY: hovered ? "15px" : "6px",
+          `repeating-linear-gradient(0deg, #38bdf8, #38bdf8 ${stripe}px, #ffffff ${stripe}px, #ffffff ${cycle}px)`,
+        backgroundPositionY: hovered ? `${offsetHover}px` : `${offsetRest}px`,
         transition: hovered
           ? "background-position-y 0.8s ease-in-out"
           : "background-position-y 0.15s ease-out",
