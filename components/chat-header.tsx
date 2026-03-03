@@ -13,7 +13,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onLogoClick }) => {
 
   return (
     <header className="relative flex items-center justify-between px-4 md:px-6 py-3 bg-card border-b border-border">
-      <Logo size="sm" />
+      <Logo size="sm" onClick={onLogoClick} />
 
       <button
         onClick={() => setAboutOpen((prev) => !prev)}
