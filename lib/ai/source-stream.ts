@@ -14,7 +14,6 @@ import {
 
 import type { StreamTextResult } from "ai";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyStreamTextResult = StreamTextResult<any, any>;
 
 interface SourceEntry {
