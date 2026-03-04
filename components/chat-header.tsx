@@ -34,9 +34,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onLogoClick }) => {
             onClick={() => setAboutOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute right-4 md:right-6 top-full mt-2 z-50 w-72 rounded-lg border border-border bg-card shadow-lg p-4">
+          <div className="absolute right-4 md:right-6 top-full mt-2 z-50 w-96 rounded-lg border border-border bg-card shadow-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="font-semibold text-foreground text-base">
+              <h3 className="font-semibold text-foreground text-lg">
                 About EPSEARCH
               </h3>
               <button
@@ -47,10 +47,13 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({ onLogoClick }) => {
                 <X size={16} />
               </button>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              EPSEARCH is a RAG-powered search tool that uses Pinecone vector
-              search and Venice AI to retrieve and answer questions from
-              documents with cited sources.
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              EPSEARCH is a search tool powered by Venice AI to help 
+              search through the Epstein documents, released January 30, 2026.
+              <br /><br />
+              Make sure to review sources manually.
+              <br /><br /> 
+              Made by  <a href="https://www.linkedin.com/in/aiden-hong-3a19a4315/" target="_blank" rel="noopener noreferrer" className="underline text-sky-400 hover:text-sky-300 transition-colors">Aiden</a> for a good cause.<br />
             </p>
           </div>
         </>

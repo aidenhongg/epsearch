@@ -49,7 +49,9 @@ export const Logo: React.FC<LogoProps> = ({ size = "sm", className, onClick }) =
           : "background-position-y 0.15s ease-out",
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
-        filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.3))",
+        filter: size === "lg"
+          ? "drop-shadow(0 0 8px rgba(56,189,248,0.6)) drop-shadow(0 0 20px rgba(56,189,248,0.3))"
+          : "drop-shadow(0 0 2px rgba(56,189,248,0.4)) drop-shadow(0 0 5px rgba(56,189,248,0.15))",
       }}
     >
       EPSEARCH.

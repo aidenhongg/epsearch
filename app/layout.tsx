@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "EPSEARCH - RAG-Powered Search",
+  title: "Epsearch",
   description:
-    "Explore documents with AI-powered retrieval augmented generation search.",
+    "Dive into the Epstein files with help from AI.",
 };
 
 export const viewport: Viewport = {

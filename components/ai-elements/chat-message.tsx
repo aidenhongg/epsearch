@@ -1,13 +1,14 @@
 import React from "react";
 import { StructuredResponse, Citation } from "./structured-response";
 import { SourcesList } from "./sources-list";
-import { ResponseDict } from "@/lib/response-parser";
-import type { Source } from "@/lib/use-sources";
+import { ResponseDict } from "@/lib/ai/response-parser";
+import type { Source } from "@/lib/cite/use-sources";
 
 export interface ChatHistoryEntry {
   userText: string;
   responseDict: ResponseDict;
   citations: Record<number, Citation>;
+  sources: Source[] | null;
 }
 
 interface ChatMessageProps {

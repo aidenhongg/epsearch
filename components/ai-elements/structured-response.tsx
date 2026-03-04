@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { ResponseDict } from "@/lib/response-parser";
+import { ResponseDict } from "@/lib/ai/response-parser";
 
 export type Citation = { label: string; url: string | null };
 

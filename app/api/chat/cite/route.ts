@@ -1,11 +1,11 @@
-import { getEmbeddingPipeline } from "@/lib/local-embedding";
+import { getEmbeddingPipeline } from "@/lib/cite/local-embedding";
 import {
   type CacheEntry,
   newSourceAbort,
   clearCache,
   setCache,
   newVectorizationGate,
-} from "@/lib/cite-state";
+} from "@/lib/cite/cite-state";
 
 type Source = {
   citationindex: number;

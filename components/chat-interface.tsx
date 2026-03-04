@@ -15,12 +15,12 @@ import { getToolName, isToolUIPart } from "ai";
 
 import { cn } from "@/lib/utils";
 import { LoadingIcon } from "@/components/icons";
-import { useResponseDict } from "@/lib/use-response-dict";
-import { useSources } from "@/lib/use-sources";
+import { useResponseDict } from "@/lib/ai/use-response-dict";
+import { useSources } from "@/lib/cite/use-sources";
 import { ChatMessage, ChatHistoryEntry } from "@/components/ai-elements/chat-message";
-import { buildSourceUrl } from "@/lib/source-url";
-import { matchCitationsClientSide } from "@/lib/client-cite";
-import type { Source } from "@/lib/use-sources";
+import { buildSourceUrl } from "@/lib/cite/source-url";
+import { matchCitationsClientSide } from "@/lib/cite/client-cite";
+import type { Source } from "@/lib/cite/use-sources";
 
 export const ChatInterface: React.FC = () => {
   const { messages, status, sendMessage, setMessages } = useChat({
@@ -40,7 +40,7 @@ export const ChatInterface: React.FC = () => {
 
   // Preload the embedding model lazily
   useEffect(() => {
-    import("@/lib/local-embedding").then(({ getEmbeddingPipeline }) =>
+    import("@/lib/cite/local-embedding").then(({ getEmbeddingPipeline }) =>
       getEmbeddingPipeline(),
     );
   }, []);
@@ -159,9 +159,9 @@ export const ChatInterface: React.FC = () => {
         .filter((part) => part.type === "text")
         .map((part) => part.text)
         .join(" ");
-      latestEntryRef.current = { userText, responseDict, citations };
+      latestEntryRef.current = { userText, responseDict, citations, sources: sources ?? null };
     }
-  }, [responseDict, citations, userQuery]);
+  }, [responseDict, citations, sources, userQuery]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -172,7 +172,6 @@ export const ChatInterface: React.FC = () => {
       latestEntryRef.current = null;
       setHistory((prev) => [...prev, snapshot]);
     }
-    setMessages([]);
     sendMessage({ text: input });
     setInput("");
   };
@@ -187,11 +186,11 @@ export const ChatInterface: React.FC = () => {
         <div className="mx-auto w-full max-w-2xl py-6">
           {!hasMessages && (
             <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-              <p className="text-lg text-muted-foreground">
+              <p className="text-2xl text-muted-foreground">
                 Ask a question to get started
               </p>
-              <p className="text-sm text-muted-foreground/60">
-                Powered by Pinecone and Venice AI
+              <p className="text-lg text-muted-foreground/60">
+                Support this project on <a href="https://ko-fi.com/aidenhongg" target="_blank" rel="noopener noreferrer" className="underline text-sky-400 hover:text-sky-200 transition-colors">Kofi</a>
               </p>
             </div>
           )}
@@ -264,7 +263,6 @@ export const ChatInterface: React.FC = () => {
               className="flex-1 bg-transparent px-2 py-2 text-base text-foreground placeholder:text-muted-foreground outline-none"
               minLength={3}
               required
-              disabled={isAwaitingResponse}
               value={input}
               placeholder="Ask me anything..."
               onChange={(e) => setInput(e.target.value)}
@@ -333,6 +331,7 @@ function MessageBubblePair({ entry }: { entry: ChatHistoryEntry }) {
             userText=""
             responseDict={entry.responseDict}
             citations={entry.citations}
+            sources={entry.sources}
           />
         </div>
       </div>

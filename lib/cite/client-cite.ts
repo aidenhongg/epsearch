@@ -9,8 +9,8 @@
  * (which don't share memory on Vercel).
  */
 
-import type { Source } from "@/lib/use-sources";
-import type { SentenceSegment } from "@/lib/response-parser";
+import type { Source } from "@/lib/cite/use-sources";
+import type { SentenceSegment } from "@/lib/ai/response-parser";
 
 export type Citation = { label: string; url: string | null };
 
@@ -46,7 +46,7 @@ export async function matchCitationsClientSide(
   signal?: AbortSignal,
 ): Promise<Record<number, Citation>> {
   // Dynamic import keeps ONNX WASM out of the initial chunk
-  const { getEmbeddingPipeline } = await import("@/lib/local-embedding");
+  const { getEmbeddingPipeline } = await import("@/lib/cite/local-embedding");
   const extractor = await getEmbeddingPipeline();
   if (signal?.aborted) return {};
 
@@ -101,7 +101,7 @@ export async function matchCitationsClientSide(
       }
     }
 
-    if (bestSim >= 0.35 && bestIdx >= 0) {
+    if (bestSim >= 0.4 && bestIdx >= 0) {
       const url = buildUrl(sourceVectors[bestIdx].metadata);
       citations[i] = {
         label: ` [${sourceVectors[bestIdx].citationindex}]`,

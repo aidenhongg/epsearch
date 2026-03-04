@@ -2,7 +2,7 @@ import { useRef, useMemo, useEffect, useCallback } from "react";
 import {
   ResponseDict,
   assembleResponseDict,
-} from "@/lib/response-parser";
+} from "@/lib/ai/response-parser";
 
 /**
  * Custom hook that manages a structured ResponseDict.
